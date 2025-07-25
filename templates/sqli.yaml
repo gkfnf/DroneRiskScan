@@ -1,0 +1,38 @@
+id: sqli-basic
+
+info:
+  name: "基本SQL注入检测"
+  author: "scanner"
+  severity: "high"
+  description: "检测基本的SQL注入漏洞"
+  tags: ["sqli", "database", "owasp-a1"]
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/?id=1'"
+      - "{{BaseURL}}/?id=1%20AND%201=1"
+      - "{{BaseURL}}/?id=1%20AND%201=2"
+      - "{{BaseURL}}/?id=1%20OR%201=1"
+      - "{{BaseURL}}/?id=1%20UNION%20SELECT%20NULL"
+    headers:
+      User-Agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "SQL syntax"
+          - "mysql_fetch"
+          - "mysql_num_rows"
+          - "ORA-01756"
+          - "ORA-00933"
+          - "PostgreSQL"
+          - "ODBC Microsoft Access"
+          - "Unclosed quotation mark"
+          - "quoted string not properly terminated"
+          - "You have an error in your SQL syntax"
+      
+      - type: status
+        status:
+          - 500
+          - 503
