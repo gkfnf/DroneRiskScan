@@ -1,0 +1,38 @@
+{
+  "description": "Comprehensive security assessment report",
+  "generated_by": "DroneRiskScan",
+  "id": "scan_1754530289761712298",
+  "recommendations": null,
+  "scan_info": {
+    "duration": 144411714,
+    "end_time": "2025-08-07T09:31:29+08:00",
+    "start_time": "2025-08-07T09:31:29+08:00",
+    "status": "completed"
+  },
+  "statistics": {
+    "total_requests": 0,
+    "total_vulnerabilities": 0,
+    "vulnerabilities_by_severity": {},
+    "vulnerabilities_by_category": {},
+    "vulnerabilities_by_type": {},
+    "targets_scanned": 1,
+    "targets_with_vulnerabilities": 0,
+    "avg_response_time": 1526243,
+    "scan_efficiency": 0,
+    "coverage_score": 0
+  },
+  "targets": [
+    {
+      "url": "http://127.0.0.1/sqli_1.php?title=test\u0026action=search",
+      "status": "completed",
+      "response_time": 1526243,
+      "status_code": 200,
+      "content_type": "text/html",
+      "content_size": 1370
+    }
+  ],
+  "timestamp": "2025-08-07T09:31:29+08:00",
+  "title": "DroneRiskScan Security Assessment Report",
+  "version": "1.0",
+  "vulnerabilities": []
+}

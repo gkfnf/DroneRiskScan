@@ -1,0 +1,19 @@
+# bWAPP 测试目标 - 覆盖主要漏洞类型
+# SQL注入测试
+http://127.0.0.1:8081/sqli_1.php?title=test&action=search
+http://127.0.0.1:8081/sqli_2.php?movie=1&action=go
+http://127.0.0.1:8081/sqli_6.php?title=test&action=search
+http://127.0.0.1:8081/sqli_7.php?title=test&action=search
+
+# XSS测试
+http://127.0.0.1:8081/xss_get.php?firstname=test&lastname=test&form=submit
+http://127.0.0.1:8081/xss_stored_1.php
+
+# 命令注入测试  
+http://127.0.0.1:8081/commandi.php?target=127.0.0.1&form=submit
+
+# 文件包含测试
+http://127.0.0.1:8081/rlfi.php?language=lang_en.php&action=go
+
+# LDAP注入测试
+http://127.0.0.1:8081/ldapi.php?login=test&password=test&form=submit

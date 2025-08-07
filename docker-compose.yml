@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  # bWAPP - 全面的PHP安全靶场 (100+漏洞场景)
+  bwapp:
+    image: raesene/bwapp
+    container_name: dronescan-bwapp
+    ports:
+      - "8081:80"
+    networks:
+      - dronescan-net
+
+  # Juice Shop - Node.js现代化靶场 (最稳定)
+  juiceshop:
+    image: bkimminich/juice-shop
+    container_name: dronescan-juiceshop
+    ports:
+      - "3000:3000"
+    networks:
+      - dronescan-net
+
+networks:
+  dronescan-net:
+    driver: bridge
