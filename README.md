@@ -1,378 +1,273 @@
-# Web扫描引擎开发指南
+# DroneRiskScan - 专业Web安全扫描引擎
 
-## 简介
+![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![Go Version](https://img.shields.io/badge/go-%3E%3D1.18-00ADD8)
+![License](https://img.shields.io/badge/license-MIT-green)
 
-使用Go语言开发Web漏洞扫描引擎的指南。本项目参考了Nuclei等开源工具的设计理念，采用模块化设计，支持高并发扫描和基于模板的漏洞检测。
+## 🚀 项目简介
 
-## 项目结构
+DroneRiskScan 是一款基于 Go 语言开发的现代化 Web 安全扫描引擎，采用浏览器自动化技术，能够准确检测各类 Web 应用安全漏洞。该工具集成了智能爬虫、动态内容分析和多种漏洞检测插件，为安全研究人员和渗透测试工程师提供强大的自动化扫描能力。
+
+### 核心特性
+
+- 🌐 **浏览器自动化引擎** - 基于 Playwright 的动态页面渲染和交互
+- 🔍 **智能漏洞检测** - 支持 SQL 注入、XSS、命令注入等多种漏洞类型
+- 🤖 **AI 辅助扫描** - 集成 Stagehand AI 进行智能页面分析
+- 📊 **并发扫描架构** - 高效的任务调度和并发控制
+- 🔐 **认证管理** - 支持多种认证方式和会话保持
+- 📝 **丰富的报告格式** - HTML、JSON 等多种输出格式
+
+## 📁 项目结构
 
 ```
-web-scanner/
+DroneRiskScan/
 ├── cmd/
-│   ├── scanner/
-│   │   └── main.go
-│   ├── crawler/
-│   │   └── main.go
-│   └── autoscan/
-│       └── main.go
+│   └── dronescan/          # 主程序入口
 ├── internal/
-│   ├── scanner/
-│   │   ├── config.go
-│   │   ├── scanner.go
-│   │   └── httpclient.go
-│   ├── templates/
-│   │   └── templates.go
-│   └── crawler/
-│       └── crawler.go
+│   ├── auth/               # 认证管理模块
+│   ├── browser/            # 浏览器自动化引擎
+│   │   ├── playwright.go   # Playwright 集成
+│   │   └── stagehand.go    # Stagehand AI 集成
+│   ├── crawler/            # 智能爬虫模块
+│   ├── detector/           # 漏洞检测器
+│   │   ├── base.go         # 检测器基类
+│   │   └── injection/      # 注入类漏洞检测
+│   │       ├── sqli.go     # SQL 注入检测
+│   │       └── sqli_enhanced.go  # 增强 SQL 注入检测
+│   ├── engine/             # 扫描引擎核心
+│   │   ├── scanner.go      # 扫描器主逻辑
+│   │   └── hybrid.go       # 混合扫描引擎
+│   ├── reporter/           # 报告生成器
+│   ├── scheduler/          # 任务调度器
+│   └── transport/          # HTTP 传输层
 ├── pkg/
-├── templates/
-│   ├── example.yaml
-│   ├── xss.yaml
-│   └── sqli.yaml
-├── go.mod
-└── README.md
+│   └── models/             # 数据模型
+│       ├── scan.go         # 扫描任务模型
+│       └── vulnerability.go # 漏洞数据模型
+├── scripts/
+│   └── stagehand_auth.py   # Stagehand 认证脚本
+├── reports/                # 扫描报告输出目录
+├── docker-compose.yml      # Docker 编排配置
+└── test_targets.txt        # 测试目标列表
 ```
 
-## 核心组件
+## 🛠️ 安装部署
 
-1. **HTTP客户端** - 负责发送HTTP请求和处理响应
-2. **扫描引擎** - 控制扫描流程和并发执行
-3. **模板引擎** - 解析和执行扫描模板
-4. **爬虫引擎** - 发现网站结构和内容
-5. **结果处理** - 处理和输出扫描结果
+### 环境要求
 
-## 开发步骤
+- Go 1.18+
+- Python 3.8+ (用于 Stagehand AI)
+- Docker & Docker Compose (可选)
+- Playwright 浏览器驱动
 
-1. 初始化Go模块
-2. 实现HTTP客户端
-3. 构建扫描引擎
-4. 添加模板支持
-5. 实现并发处理
-6. 添加结果输出功能
+### 快速安装
 
-## 使用方法
+1. **克隆项目**
+```bash
+git clone https://github.com/gkfnf/DroneRiskScan.git
+cd DroneRiskScan
+```
 
-### 编译
+2. **安装依赖**
+```bash
+# 安装 Go 依赖
+go mod download
+
+# 安装 Python 依赖（如使用 Stagehand）
+pip install -r requirements.txt
+
+# 安装 Playwright 浏览器
+playwright install chromium
+```
+
+3. **编译项目**
+```bash
+go build -o dronescan ./cmd/dronescan
+```
+
+### Docker 部署
 
 ```bash
-# 编译扫描器
-go build -o web-scanner cmd/scanner/main.go
+# 使用 Docker Compose 启动
+docker-compose up -d
 
-# 编译爬虫
-go build -o web-crawler cmd/crawler/main.go
-
-# 编译自动扫描器
-go build -o web-autoscan cmd/autoscan/main.go
+# 查看运行状态
+docker-compose ps
 ```
 
-### 运行扫描器
+## 📖 使用指南
+
+### 基础扫描
 
 ```bash
 # 扫描单个目标
-./web-scanner -targets http://example.com
+./dronescan -target https://example.com
 
-# 扫描多个目标
-./web-scanner -targets http://example.com,http://test.com
+# 从文件批量扫描
+./dronescan -targets-file test_targets.txt
 
-# 设置并发线程数
-./web-scanner -targets http://example.com -threads 20
-
-# 设置超时时间
-./web-scanner -targets http://example.com -timeout 15
-
-# 指定模板目录
-./web-scanner -targets http://example.com -templates ./templates
-
-# 输出到文件
-./web-scanner -targets http://example.com -output result.txt
+# 指定输出目录
+./dronescan -target https://example.com -output reports/
 ```
 
-### 运行爬虫
+### 高级选项
 
 ```bash
-# 爬取网站
-./web-crawler -url http://example.com
-
-# 设置爬取深度
-./web-crawler -url http://example.com -depth 3
+# 启用调试模式
+./dronescan -target https://example.com -debug
 
 # 设置并发数
-./web-crawler -url http://example.com -concurrency 10
+./dronescan -target https://example.com -concurrency 10
 
-# 设置超时时间
-./web-crawler -url http://example.com -timeout 15
+# 指定风险等级
+./dronescan -target https://example.com -risk-level high
+
+# 启用特定插件
+./dronescan -target https://example.com -enable-plugins sqli,xss
+
+# 使用认证扫描
+./dronescan -target https://example.com \
+    -login-url https://example.com/login \
+    -username admin \
+    -password secret
 ```
 
-### 运行自动扫描器
+### 命令行参数
+
+| 参数 | 说明 | 默认值 |
+|------|------|--------|
+| `-target` | 扫描目标 URL | - |
+| `-targets-file` | 目标列表文件 | - |
+| `-output` | 报告输出目录 | `./reports` |
+| `-report-format` | 报告格式 (html/json) | `html` |
+| `-concurrency` | 并发扫描数 | `5` |
+| `-timeout` | 请求超时时间 | `30s` |
+| `-risk-level` | 风险等级 (low/medium/high/critical) | `medium` |
+| `-debug` | 调试模式 | `false` |
+| `-verbose` | 详细输出 | `false` |
+| `-enable-plugins` | 启用插件列表 | all |
+| `-disable-plugins` | 禁用插件列表 | - |
+| `-show-plugins` | 显示可用插件 | - |
+| `-version` | 显示版本信息 | - |
+
+## 🔌 插件系统
+
+### 已支持的漏洞类型
+
+- **SQL 注入** - 多种 SQL 注入检测技术
+  - 布尔盲注
+  - 时间盲注
+  - 错误回显
+  - 联合查询
+- **XSS** - 跨站脚本攻击
+  - 反射型 XSS
+  - 存储型 XSS
+  - DOM XSS
+- **命令注入** - OS 命令执行
+- **文件包含** - 本地/远程文件包含
+- **LDAP 注入** - 目录服务注入
+- **XXE** - XML 外部实体注入
+- **SSRF** - 服务器端请求伪造
+- **路径遍历** - 目录穿越攻击
+
+### 自定义插件开发
+
+创建自定义检测器，实现 `Detector` 接口：
+
+```go
+type Detector interface {
+    Name() string
+    Detect(target string, params map[string]string) (*Vulnerability, error)
+    GetRiskLevel() string
+}
+```
+
+## 🧪 测试环境
+
+项目包含了用于测试的靶场环境配置：
 
 ```bash
-# 自动扫描网站（先爬取再扫描）
-./web-autoscan -url http://example.com
+# 启动 bWAPP 测试环境
+docker run -d -p 8081:80 raesene/bwapp
 
-# 设置扫描线程数
-./web-autoscan -url http://example.com -threads 20
-
-# 设置爬虫深度
-./web-autoscan -url http://example.com -depth 3
-
-# 设置超时时间
-./web-autoscan -url http://example.com -timeout 15
-
-# 指定模板目录
-./web-autoscan -url http://example.com -templates ./templates
-
-# 输出到文件
-./web-autoscan -url http://example.com -output result.txt
+# 运行测试扫描
+./dronescan -targets-file test_targets.txt
 ```
 
-## 模板格式
+## 📊 扫描报告
 
-模板使用YAML格式定义，包含以下主要部分：
+扫描完成后会在 `reports/` 目录生成详细报告：
 
-- `id`: 模板唯一标识
-- `info`: 模板信息（名称、作者、严重性等）
-- `http`: HTTP请求定义
-- `matchers`: 响应匹配规则
+- **HTML 报告** - 可视化展示扫描结果
+- **JSON 报告** - 结构化数据，便于集成
+- **日志文件** - 详细的扫描过程记录
 
-示例模板:
+报告包含：
+- 漏洞详情和风险等级
+- 复现步骤和 Payload
+- 修复建议
+- 扫描统计信息
 
-```yaml
-id: example-template
+## 🔧 配置说明
 
-info:
-  name: "示例模板"
-  author: "developer"
-  severity: "info"
-  description: "这是一个示例模板，用于演示模板格式"
-  tags: ["example", "test"]
+### Stagehand AI 配置
 
-http:
-  - method: GET
-    path:
-      - "/test"
-      - "/demo"
-    headers:
-      User-Agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-    matchers:
-      - type: word
-        part: body
-        words:
-          - "test page"
-          - "demo content"
-      
-      - type: status
-        status:
-          - 200
-          - 403
-```
-
-## XSS检测
-
-项目包含基本的XSS检测模板，可以检测常见的跨站脚本漏洞：
-
-- 在URL参数中注入脚本标签
-- 测试HTML上下文中的XSS
-- 检测事件处理程序中的XSS
-
-示例XSS模板:
-
-```yaml
-id: xss-basic
-
-info:
-  name: "基本XSS检测"
-  author: "scanner"
-  severity: "high"
-  description: "检测基本的跨站脚本攻击漏洞"
-  tags: ["xss", "client-side", "owasp-a3"]
-
-http:
-  - method: GET
-    path:
-      - "{{BaseURL}}/?q=%3Cscript%3Ealert%281%29%3C%2Fscript%3E"
-      - "{{BaseURL}}/?search=%27%3E%3Cscript%3Ealert%281%29%3C%2Fscript%3E"
-      - "{{BaseURL}}/?input=%3Cimg%20src=x%20onerror=alert%281%29%3E"
-    headers:
-      User-Agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-    matchers:
-      - type: word
-        part: body
-        words:
-          - "<script>alert(1)</script>"
-          - "'>alert(1)"
-          - "<img src=x onerror=alert(1)>"
-      
-      - type: word
-        part: header
-        words:
-          - "text/html"
-```
-
-## SQL注入检测
-
-项目包含基本的SQL注入检测模板，可以检测常见的SQL注入漏洞：
-
-- 测试单引号注入
-- 检测布尔盲注
-- 检测联合查询注入
-
-示例SQL注入模板:
-
-```yaml
-id: sqli-basic
-
-info:
-  name: "基本SQL注入检测"
-  author: "scanner"
-  severity: "high"
-  description: "检测基本的SQL注入漏洞"
-  tags: ["sqli", "database", "owasp-a1"]
-
-http:
-  - method: GET
-    path:
-      - "{{BaseURL}}/?id=1'"
-      - "{{BaseURL}}/?id=1%20AND%201=1"
-      - "{{BaseURL}}/?id=1%20AND%201=2"
-      - "{{BaseURL}}/?id=1%20OR%201=1"
-      - "{{BaseURL}}/?id=1%20UNION%20SELECT%20NULL"
-    headers:
-      User-Agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-    matchers:
-      - type: word
-        part: body
-        words:
-          - "SQL syntax"
-          - "mysql_fetch"
-          - "mysql_num_rows"
-          - "ORA-01756"
-          - "ORA-00933"
-          - "PostgreSQL"
-          - "ODBC Microsoft Access"
-          - "Unclosed quotation mark"
-          - "quoted string not properly terminated"
-          - "You have an error in your SQL syntax"
-      
-      - type: status
-        status:
-          - 500
-          - 503
-```
-
-## 爬虫功能
-
-爬虫模块可以自动发现网站的结构和内容，包括：
-
-- 遍历网站链接
-- 提取页面标题
-- 发现表单和输入字段
-- 支持深度控制
-- 并发爬取
-
-爬虫的主要特性：
-
-1. **并发爬取** - 支持多协程并发爬取，提高效率
-2. **深度控制** - 可设置最大爬取深度，避免无限爬取
-3. **链接发现** - 自动发现页面中的所有链接
-4. **表单识别** - 识别页面中的表单及其输入字段
-5. **URL规范化** - 自动解析和规范化相对URL和绝对URL
-
-使用示例：
+如需使用 AI 辅助扫描功能：
 
 ```bash
-# 爬取网站，最大深度为3
-./web-crawler -url http://example.com -depth 3
+# 运行认证脚本
+python scripts/stagehand_auth.py
+
+# 配置 API 密钥
+export STAGEHAND_API_KEY="your-api-key"
 ```
 
-输出示例：
-```
-开始爬取: http://example.com (最大深度: 3)
-
-URL: http://example.com
-状态码: 200
-标题: 示例页面
-发现 3 个链接:
-  - http://example.com/about
-  - http://example.com/contact
-  - https://example.com/external
-发现 2 个表单:
-  表单 1:
-    动作: http://example.com/search
-    方法: GET
-      输入: q (text)
-      输入: submit (submit)
-  表单 2:
-    动作: http://example.com/login
-    方法: POST
-      输入: username (text)
-      输入: password (password)
-      输入: submit (submit)
-```
-
-## 自动扫描功能
-
-自动扫描功能集成了爬虫和漏洞扫描，可以一键完成整个安全检测流程：
-
-1. **自动发现** - 使用爬虫自动发现网站结构和页面
-2. **智能扫描** - 对发现的所有页面进行漏洞扫描
-3. **结果聚合** - 汇总所有扫描结果并分类展示
-
-使用示例：
+### 代理配置
 
 ```bash
-# 自动扫描网站
-./web-autoscan -url http://example.com
+# HTTP 代理
+export HTTP_PROXY="http://proxy:8080"
 
-# 设置爬虫深度和扫描线程数
-./web-autoscan -url http://example.com -depth 3 -threads 20
+# HTTPS 代理  
+export HTTPS_PROXY="http://proxy:8080"
 ```
 
-工作流程：
-```
-开始自动扫描网站: http://example.com
-爬虫深度: 2, 扫描线程数: 10
+## 🚀 开发计划
 
-=== 第一步：爬取网站结构 ===
-发现的页面:
-  http://example.com (状态码: 200)
-  http://example.com/about (状态码: 200)
-  http://example.com/contact (状态码: 200)
+- [ ] 支持更多漏洞类型检测
+- [ ] 增强 JavaScript 动态分析能力
+- [ ] 添加 API 安全扫描功能
+- [ ] 实现分布式扫描架构
+- [ ] 集成更多 AI 分析能力
+- [ ] 支持自定义扫描策略
+- [ ] 添加 Web UI 界面
+- [ ] 支持扫描任务管理
+- [ ] 增加漏洞验证功能
+- [ ] 优化内存使用和性能
 
-总共发现 3 个有效页面
+## 🤝 贡献指南
 
-=== 第二步：漏洞扫描 ===
-开始扫描 3 个页面...
+欢迎提交 Issue 和 Pull Request！
 
-=== 第三步：扫描结果 ===
-目标: http://example.com
-漏洞: 基本XSS检测
-模板: xss-basic
-严重性: high
-请求: GET http://example.com/?q=<script>alert(1)</script>
-响应: 200 OK
-时间: 2023-01-01 12:00:00
+1. Fork 本项目
+2. 创建功能分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 提交 Pull Request
+
+## 📄 许可证
+
+本项目采用 MIT 许可证 - 详见 [LICENSE](LICENSE) 文件
+
+## ⚠️ 免责声明
+
+本工具仅供安全研究和授权测试使用。使用者需遵守当地法律法规，对未授权目标进行扫描可能触犯法律。开发者不对任何非法使用承担责任。
+
+## 📮 联系方式
+
+- GitHub: [https://github.com/gkfnf/DroneRiskScan](https://github.com/gkfnf/DroneRiskScan)
+- Issues: [https://github.com/gkfnf/DroneRiskScan/issues](https://github.com/gkfnf/DroneRiskScan/issues)
+
 ---
 
-发现 1 个潜在漏洞!
-
-按严重性分类:
-  high: 1
-
-按漏洞类型分类:
-  xss-basic: 1
-
-自动扫描完成!
-```
-
-## 扩展功能建议
-
-1. **支持更多协议**: DNS、TCP、SSL等
-2. **增强模板功能**: 支持变量、表达式、条件判断等
-3. **添加插件系统**: 支持自定义插件扩展功能
-4. **优化性能**: 连接池、缓存机制等
-5. **增加报告功能**: 生成HTML、JSON等格式报告
-6. **支持认证**: Basic Auth、JWT等认证方式
-7. **改进匹配器**: 支持正则表达式、更复杂的匹配逻辑
-8. **添加被动扫描**: 支持代理模式和流量拦截
-9. **增强爬虫功能**: 支持JavaScript渲染、处理Cookies等
-10. **智能去重**: 更好的URL去重和内容去重机制
+**DroneRiskScan** - 让 Web 安全扫描更智能、更高效！ 🛡️
